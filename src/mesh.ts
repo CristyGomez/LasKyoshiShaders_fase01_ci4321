@@ -1,4 +1,6 @@
 // Constantes y clases para crear mallas y dibujarlas
+import { mat3, mat4 } from 'gl-matrix';
+import type { Color, createFixedFunction } from './vendor/ff/ff';
 
 import { ATTRIB, type FixedFunction } from './vendor/ff/ff'; // 
 
@@ -11,6 +13,8 @@ export const FLOATS_PER_VERTEX = 6;
 export const STRIDE_BYTES = FLOATS_PER_VERTEX * 4; 
 // offset para la normal dentro de un vertice, en bytes
 export const NORMAL_OFFSET_BYTES = 3 * 4;
+
+const normalMatrix = mat3.create();
 
 // ============================= CLASES ==============================
 
@@ -63,6 +67,27 @@ export class Mesh {
 
 	draw(gl: WebGL2RenderingContext, ff: FixedFunction): void {
 		gl.bindVertexArray(this.vao);
-		ff.drawElements(gl.TRIANGLES, this.vertexCount, gl.UNSIGNED_SHORT, 0);
-	}
+    	ff.drawElements(gl.TRIANGLES, this.triangle_indices.length, gl.UNSIGNED_SHORT, 0);	}
+}
+
+// ============================= FUNCIONES ==============================
+
+/** Dibuja una malla con un color y una model matrix. */
+export function drawPart(gl: WebGL2RenderingContext, 
+						 ff: ReturnType<typeof createFixedFunction>, 
+						 mesh: Mesh, 
+						 model: mat4, 
+						 color: Color): void {
+
+  // el color de la pieza (ambiente y difuso iguales, como en el cubo).
+  ff.setMaterial({ ambient: color, diffuse: color });
+
+  // Con el modelo sabemos donde va la pieza en el mundo.
+  ff.setModelMatrix(model);
+
+  // matriz normal
+  ff.setNormalMatrix(mat3.normalFromMat4(normalMatrix, model));
+
+  // Dibujar
+  mesh.draw(gl, ff);
 }
