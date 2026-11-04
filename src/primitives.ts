@@ -197,3 +197,35 @@ export function createPlane(gl: WebGL2RenderingContext, width: number, depth: nu
     plane.build(gl);
     return plane;
 }
+
+// Esta funcion es para intentar como el logo de la nacion del fuego pero hiper simplificado
+// Media luna plana.
+export function createCrescent(gl: WebGL2RenderingContext, radius: number, width: number, segments = 32): Mesh {
+  
+    const crescent = new Mesh();
+    const outer: number[] = [];
+    const inner: number[] = [];
+
+    // Creamos los vertices, recorremos solo medio círculo, de t = 0 a t = PI.
+    for (let i = 0; i <= segments; i++) {
+        const t = (Math.PI * i) / segments;
+        const c = Math.cos(t);
+        const s = Math.sin(t);
+
+        // El borde interior se acerca al exterior en las puntas (sin(t) = 0) y se aleja en el centro.
+        const innerRadius = radius - width * s;
+
+        // Todos con normal hacia arriba, porque la media luna es plana.
+        outer.push(crescent.vertex(radius * c, 0, radius * s, 0, 1, 0));
+        inner.push(crescent.vertex(innerRadius * c, 0, innerRadius * s, 0, 1, 0));
+    }
+
+    // Triangulos
+    for (let i = 0; i < segments; i++) {
+        crescent.triangle(outer[i], inner[i], outer[i + 1]);
+        crescent.triangle(inner[i], inner[i + 1], outer[i + 1]);
+    }
+
+    crescent.build(gl);
+    return crescent;
+}
