@@ -19,22 +19,64 @@ import {
 
 } from './constants';
 
-import { createPlane } from './primitives';
+import { createPlane, createBox, createCylinder, createCrescent } from './primitives';
 import { Mesh, drawPart } from './mesh';
 
+import {
+		tank_m, 
+		updateTankMatrices, 
+		BODY_PARTS,
+		BODY_SIZE,
+		TURRET_RADIUS, TURRET_LENGTH,
+		BARREL_RADIUS, BARREL_LENGTH,
+		TRACK_SIZE,
+		EXHAUST_RADIUS, EXHAUST_HEIGHT,
+		CRESCENT_RADIUS, CRESCENT_WIDTH,
+		EMBLEM_CIRCLE_RADIUS, EMBLEM_CIRCLE_HEIGHT,
+		TANK_COLOR,
+		DETAIL_COLOR,
+		EMBLEM_COLOR,
+		CRESCENT_OFFSET,
+		EMBLEM_CIRCLE_OFFSET
+} from './tank';
+
+
+// ============================== TIPOS ==============================
 type FF = ReturnType<typeof createFixedFunction>;
 
+
+// ============================== INTERFACES  ==============================
 interface Meshes {
+	// Suelo
 	ground: Mesh;
-	// body: Mesh;
-	// barrel: Mesh;
-	// sphere: Mesh;
+
+	// Tanque
+	body: Mesh;
+	turret: Mesh;
+	barrel: Mesh;
+
+	// Piezas fijas al cuerpo
+	track: Mesh;
+	exhaust: Mesh;
+
+	// Emblema
+	crescent: Mesh;
+	emblemCircle: Mesh;
+
 }
+
+// ============================== CONSTANTES ==============================
 
 const ROTATION_SPEED = 0.8; 
 const MAX_DT = 0.1; // seconds
 
-const identity = mat4.create()
+// maitrz identidad
+const identity = mat4.create();
+// se reutiliza para las piezas fijas al cuerpo
+const partMatrix = mat4.create();  
+
+
+// ============================== FUNCIONES ==============================
 
 // Step 1. Get the WebGL2 context.
 function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
@@ -113,7 +155,7 @@ function setupScene(ff: FF): void {
 // ---------------------------------------------------------------------------
 
 // Game state: everything the simulation needs, nothing about WebGL.
-const state = { angle: 0, colorIndex: 0, rotating: true };
+const state = { posX: 0, elevation: 30 };
 
 // Input: the keydown listener only records presses. processInput handles them later, once per frame.
 let spacePressed = false;
@@ -139,7 +181,7 @@ function processInput(): void {
 
 // Loop phase 2. 
 function update(dt: number): void {
-	//
+	updateTankMatrices(state.posX, state.elevation);
 }
 
 // Loop phase 3. Draw the current state. render reads the state and never changes it.
@@ -151,7 +193,27 @@ const normalMatrix = mat3.create();
 function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes): void {
 	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	// Suelo
   	drawPart(gl, ff, meshes.ground, identity, GROUND_COLOR);
+
+	// Tanque
+	drawPart(gl, ff, meshes.body, 	tank_m.base,   TANK_COLOR);
+	drawPart(gl, ff, meshes.turret, tank_m.turret, TANK_COLOR);
+	drawPart(gl, ff, meshes.barrel, tank_m.barrel, TANK_COLOR);
+
+	// Esto tal vez deberiamos ver si va en otra parte
+	// Orugas y escapes del tanque
+	for (const part of BODY_PARTS) {
+		mat4.translate(partMatrix, tank_m.base, part.offset);
+		drawPart(gl, ff, meshes[part.mesh], partMatrix, DETAIL_COLOR);
+	}
+
+	// Emblema sobre el techo
+	mat4.translate(partMatrix, tank_m.base, CRESCENT_OFFSET);
+	drawPart(gl, ff, meshes.crescent, partMatrix, EMBLEM_COLOR);
+	mat4.translate(partMatrix, tank_m.base, EMBLEM_CIRCLE_OFFSET);
+	drawPart(gl, ff, meshes.emblemCircle, partMatrix, EMBLEM_COLOR);
 }
 
 function run(canvas: HTMLCanvasElement): void {
@@ -161,9 +223,24 @@ function run(canvas: HTMLCanvasElement): void {
     const ff = createFixedFunction(gl, { debug: true });
 	
 
-    // Vamos a crear nuestras mallas las cuales vamos a reutilizar en cada frame
+    // Vamos a crear nuestras mallas las cuales vamos a reutilizar en cada frameal
+	// Luego lo pasamos a una funcion
 	const meshes = {
+		// Suelo de la escena
 		ground: createPlane(gl, GROUND_WIDTH, GROUND_DEPTH),
+
+		// Tanque
+		body: createBox(gl, ...BODY_SIZE),
+		turret: createCylinder(gl, TURRET_RADIUS, TURRET_LENGTH),
+		barrel: createCylinder(gl, BARREL_RADIUS, BARREL_LENGTH),
+
+		// Detalles del tanque
+		track: createBox(gl, ...TRACK_SIZE),
+		exhaust: createCylinder(gl, EXHAUST_RADIUS, EXHAUST_HEIGHT),
+
+		// Emblema del tanque
+		crescent: createCrescent(gl, CRESCENT_RADIUS, CRESCENT_WIDTH),
+		emblemCircle: createCylinder(gl, EMBLEM_CIRCLE_RADIUS, EMBLEM_CIRCLE_HEIGHT),
 	}
 
     
