@@ -12,22 +12,6 @@ export const STRIDE_BYTES = FLOATS_PER_VERTEX * 4;
 // offset para la normal dentro de un vertice, en bytes
 export const NORMAL_OFFSET_BYTES = 3 * 4;
 
-
-//============================== INTERFACES ==============================
-
-// Meshdata es la interface que retorna el generador de primitivas, contiene los 
-// vertices y los indices para crear la malla.
-export interface MeshData {
-	vertices: Float32Array;
-	indices: Uint16Array;
-}
-
-// Interface que representa la malla, contiene el VAO y el numero de indices
-export interface Mesh {
-	vao: WebGLVertexArrayObject | null;
-	index_count: number; 
-}
-
 // ============================= CLASES ==============================
 
 // Creador de mallas, permite agregar vertices y triangulos (en base a sus indices)
@@ -49,7 +33,7 @@ export class Mesh {
         this.triangle_indices.push(a, b, c);
     }
 
-	createMesh(gl: WebGL2RenderingContext): void { 
+	build(gl: WebGL2RenderingContext): void { 
 
 		// VAO, Buffer de vertices y carga de datos en la GPU
 		const vao = gl.createVertexArray()!;
