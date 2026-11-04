@@ -1,5 +1,5 @@
 // Generador de primitivas, se retornan datos de malla centrados en el origen. 
-import { Mesh, type MeshData } from './mesh' ;
+import { Mesh } from './mesh' ;
 
 //============================== TIPOS ==============================
 
