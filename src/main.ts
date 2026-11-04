@@ -6,15 +6,17 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   CLEAR_COLOR,
-  COLORS,
-  CUBE_INDICES,
-  CUBE_VERTICES,
+
   NORMAL_OFFSET_BYTES,
   STRIDE_BYTES,
 
   GROUND_COLOR,
   GROUND_WIDTH,
-  GROUND_DEPTH
+  GROUND_DEPTH,
+
+  CAMERA_EYE,
+  CAMERA_TARGET,
+
 } from './constants';
 
 import { createPlane } from './primitives';
@@ -85,20 +87,21 @@ function setupState(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement): void
 
 // Step 6. Scene: lighting, one directional light, camera.
 function setupScene(ff: FF): void {
-  ff.enable(LIGHTING);
-  ff.setGlobalAmbient([0.2, 0.2, 0.2, 1]); // the FF default, set explicitly to make it visible
+	ff.enable(LIGHTING);
+	ff.setGlobalAmbient([0.2, 0.2, 0.2, 1]); // the FF default, set explicitly to make it visible
 
-  // The light TRAVELS in direction (-1, -1, -0.5): down, left, slightly away from the camera.
-  // FF's position (w = 0) points TOWARD the light, so the sign flips: (1, 1, 0.5, 0).
-  // Passing the travel direction instead lights the faces that point away from the light.
-  ff.setLight(0, { position: [1, 1, 0.5, 0], diffuse: [1, 1, 1, 1] });
-  ff.enableLight(0);
+	// The light TRAVELS in direction (-1, -1, -0.5): down, left, slightly away from the camera.
+	// FF's position (w = 0) points TOWARD the light, so the sign flips: (1, 1, 0.5, 0).
+	// Passing the travel direction instead lights the faces that point away from the light.
+	ff.setLight(0, { position: [1, 1, 0.5, 0], diffuse: [1, 0.95, 0.85, 1] });
+	ff.enableLight(0);
 
-  const view = mat4.lookAt(mat4.create(), [0, 1.5, 4], [0, 0, 0], [0, 1, 0]);
-  ff.setViewMatrix(view);
-  // Aspect = width / height of the drawing buffer (4:3). A wrong aspect stretches the cube.
-  const projection = mat4.perspective(mat4.create(), Math.PI / 4, CANVAS_WIDTH / CANVAS_HEIGHT, 0.1, 100);
-  ff.setProjectionMatrix(projection);
+	// Provisional	
+	const view = mat4.lookAt(mat4.create(), CAMERA_EYE, CAMERA_TARGET, [0, 1, 0]);
+	ff.setViewMatrix(view);
+	// Aspect = width / height of the drawing buffer (4:3). A wrong aspect stretches the cube.
+	const projection = mat4.perspective(mat4.create(), Math.PI / 4, CANVAS_WIDTH / CANVAS_HEIGHT, 0.1, 100);
+	ff.setProjectionMatrix(projection);
 }
 
 // ---------------------------------------------------------------------------
