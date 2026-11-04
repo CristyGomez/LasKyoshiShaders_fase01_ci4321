@@ -11,12 +11,28 @@ import {
   CUBE_VERTICES,
   NORMAL_OFFSET_BYTES,
   STRIDE_BYTES,
+
+  GROUND_COLOR,
+  GROUND_WIDTH,
+  GROUND_DEPTH
 } from './constants';
+
+import { createPlane } from './primitives';
+import { Mesh, drawPart } from './mesh';
 
 type FF = ReturnType<typeof createFixedFunction>;
 
+interface Meshes {
+	ground: Mesh;
+	// body: Mesh;
+	// barrel: Mesh;
+	// sphere: Mesh;
+}
+
 const ROTATION_SPEED = 0.8; 
 const MAX_DT = 0.1; // seconds
+
+const identity = mat4.create()
 
 // Step 1. Get the WebGL2 context.
 function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
@@ -115,15 +131,12 @@ function setupInput(): void {
 // Each flag is cleared after use, so each press counts once.
 //
 function processInput(): void {
-  if (spacePressed) state.colorIndex = (state.colorIndex + 1) % COLORS.length;
-  if (rPressed) state.rotating = !state.rotating;
-  spacePressed = false;
-  rPressed = false;
+  //
 }
 
 // Loop phase 2. 
 function update(dt: number): void {
-  if (state.rotating) state.angle += ROTATION_SPEED * dt; // paused: the angle keeps its value
+	//
 }
 
 // Loop phase 3. Draw the current state. render reads the state and never changes it.
@@ -132,43 +145,41 @@ function update(dt: number): void {
 const model = mat4.create();
 const normalMatrix = mat3.create();
 
-function render(gl: WebGL2RenderingContext, ff: FF, vao: WebGLVertexArrayObject): void {
-  const color = COLORS[state.colorIndex];
-  ff.setMaterial({ ambient: color, diffuse: color }); // specular stays at the FF default (0)
-
-  mat4.fromYRotation(model, state.angle);
-  ff.setModelMatrix(model);
-  // FF needs the normal matrix for lit normals: setModelMatrix does not update it.
-  ff.setNormalMatrix(mat3.normalFromMat4(normalMatrix, model));
-
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.bindVertexArray(vao);
-  ff.drawElements(gl.TRIANGLES, CUBE_INDICES.length, gl.UNSIGNED_SHORT, 0);
+function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes): void {
+	
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  	drawPart(gl, ff, meshes.ground, identity, GROUND_COLOR);
 }
 
 function run(canvas: HTMLCanvasElement): void {
-  const gl = getContext(canvas);
-  const ff = createFixedFunction(gl, { debug: true });
-  const vertices = createVertexBuffer(gl, CUBE_VERTICES);
-  const indices = createIndexBuffer(gl, CUBE_INDICES);
-  const vao = createVAO(gl, vertices, indices);
-  setupState(gl, canvas);
-  setupScene(ff);
-  setupInput();
+	
+	//========= CONSTANTES =========
+    const gl = getContext(canvas);
+    const ff = createFixedFunction(gl, { debug: true });
+	
 
-  state.colorIndex = 2;
-  let last: number | null = null; // set by the first frame, so dt starts at 0
-  function frame(now: number): void {
-    if (last === null) last = now;
-    // rAF pauses in hidden tabs. On return, (now - last) would be huge, so cap dt.
-    const dt = Math.min((now - last) / 1000, MAX_DT);
-    last = now;
-    processInput();
-    update(dt);
-    render(gl, ff, vao);
+    // Vamos a crear nuestras mallas las cuales vamos a reutilizar en cada frame
+	const meshes = {
+		ground: createPlane(gl, GROUND_WIDTH, GROUND_DEPTH),
+	}
+
+    
+	setupState(gl, canvas);
+    setupScene(ff);
+    setupInput();
+
+    let last: number | null = null; // set by the first frame, so dt starts at 0
+    function frame(now: number): void {
+		if (last === null) last = now;
+		// rAF pauses in hidden tabs. On return, (now - last) would be huge, so cap dt.
+		const dt = Math.min((now - last) / 1000, MAX_DT);
+		last = now;
+		processInput();
+		update(dt);
+		render(gl, ff, meshes);
+		requestAnimationFrame(frame);
+    }
     requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
 }
 
 // Page scaffolding: create the canvas and start the cube.
