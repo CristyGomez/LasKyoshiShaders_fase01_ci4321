@@ -1,7 +1,12 @@
 // Scene constants: geometry, colors and canvas settings. main.ts holds the WebGL code and the game loop.
 
-/** Background color #1b1e2b as linear floats in [0, 1]. */
-export const CLEAR_COLOR: readonly [number, number, number, number] = [0x1b / 255, 0x1e / 255, 0x2b / 255, 1];
+/** Sky color (Background color) #8EC5E8 as floats in [0, 1]. */
+export const CLEAR_COLOR: readonly [number, number, number, number] = [0x8e / 255, 0xc5 / 255, 0xe8 / 255, 1];
+
+/** Suelo constantes */
+export const GROUND_COLOR: readonly [number, number, number, number] = [0.55, 0.38, 0.22, 1];
+export const GROUND_WIDTH = 40; // x
+export const GROUND_DEPTH = 60; // z
 
 /** Drawing buffer size in pixels, 4:3. CSS scales the canvas to fit the window; the buffer stays fixed. */
 export const CANVAS_WIDTH = 1024;
