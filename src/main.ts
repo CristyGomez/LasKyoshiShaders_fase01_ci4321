@@ -1,14 +1,14 @@
 // Rotating cube, FixedFunction (FF) version.
 import './style.css';
-import { mat3, mat4, vec3} from 'gl-matrix';
-import { ATTRIB, createFixedFunction, LIGHTING } from './vendor/ff/ff';
+import {  mat4, vec3} from 'gl-matrix';
+import {  createFixedFunction, LIGHTING } from './vendor/ff/ff';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   CLEAR_COLOR,
 
-  NORMAL_OFFSET_BYTES,
-  STRIDE_BYTES,
+//   NORMAL_OFFSET_BYTES,
+//   STRIDE_BYTES,
 
   GROUND_COLOR,
   GROUND_WIDTH,
@@ -114,37 +114,37 @@ function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
   return gl;
 }
 
-// Step 2. Shaders and program: FF creates and owns them.
-// Step 3. Vertex specification: copy the vertex and index data to the GPU.
-function createVertexBuffer(gl: WebGL2RenderingContext, data: Float32Array): WebGLBuffer {
-  const buffer = gl.createBuffer()!;
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-  return buffer;
-}
+// // Step 2. Shaders and program: FF creates and owns them.
+// // Step 3. Vertex specification: copy the vertex and index data to the GPU.
+// function createVertexBuffer(gl: WebGL2RenderingContext, data: Float32Array): WebGLBuffer {
+//   const buffer = gl.createBuffer()!;
+//   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+//   gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+//   return buffer;
+// }
 
-function createIndexBuffer(gl: WebGL2RenderingContext, data: Uint16Array): WebGLBuffer {
-  const buffer = gl.createBuffer()!;
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
-  return buffer;
-}
+// function createIndexBuffer(gl: WebGL2RenderingContext, data: Uint16Array): WebGLBuffer {
+//   const buffer = gl.createBuffer()!;
+//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+//   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
+//   return buffer;
+// }
 
-// Step 4. Describe how the vertex data is laid out, using FF's attribute slots.
-// No ATTRIB.COLOR: lit colors come from the material.
-function createVAO(gl: WebGL2RenderingContext, vertices: WebGLBuffer, indices: WebGLBuffer): WebGLVertexArrayObject {
-  const vao = gl.createVertexArray()!;
-  gl.bindVertexArray(vao);
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
-  gl.enableVertexAttribArray(ATTRIB.POSITION);
-  gl.vertexAttribPointer(ATTRIB.POSITION, 3, gl.FLOAT, false, STRIDE_BYTES, 0);
-  gl.enableVertexAttribArray(ATTRIB.NORMAL);
-  gl.vertexAttribPointer(ATTRIB.NORMAL, 3, gl.FLOAT, false, STRIDE_BYTES, NORMAL_OFFSET_BYTES);
-  // The VAO remembers the ELEMENT_ARRAY_BUFFER bound while it is bound.
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
-  gl.bindVertexArray(null);
-  return vao;
-}
+// // Step 4. Describe how the vertex data is laid out, using FF's attribute slots.
+// // No ATTRIB.COLOR: lit colors come from the material.
+// function createVAO(gl: WebGL2RenderingContext, vertices: WebGLBuffer, indices: WebGLBuffer): WebGLVertexArrayObject {
+//   const vao = gl.createVertexArray()!;
+//   gl.bindVertexArray(vao);
+//   gl.bindBuffer(gl.ARRAY_BUFFER, vertices);
+//   gl.enableVertexAttribArray(ATTRIB.POSITION);
+//   gl.vertexAttribPointer(ATTRIB.POSITION, 3, gl.FLOAT, false, STRIDE_BYTES, 0);
+//   gl.enableVertexAttribArray(ATTRIB.NORMAL);
+//   gl.vertexAttribPointer(ATTRIB.NORMAL, 3, gl.FLOAT, false, STRIDE_BYTES, NORMAL_OFFSET_BYTES);
+//   // The VAO remembers the ELEMENT_ARRAY_BUFFER bound while it is bound.
+//   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
+//   gl.bindVertexArray(null);
+//   return vao;
+// }
 
 // Step 5. Pipeline state: canvas size, viewport, clear color, depth test, face culling.
 function setupState(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement): void {
@@ -333,8 +333,8 @@ function update(dt: number): void {
 // Loop phase 3. Draw the current state. render reads the state and never changes it.
 // setMaterial runs every frame, so FF re-uploads the material each frame. That costs a few
 // uniforms and keeps render simple. Exercise: set the material only when colorIndex changes.
-const model = mat4.create();
-const normalMatrix = mat3.create();
+// const model = mat4.create();
+// const normalMatrix = mat3.create();
 
 function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes, trajectory: TrajectoryLine): void {
 	
