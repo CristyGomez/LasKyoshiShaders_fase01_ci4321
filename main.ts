@@ -37,7 +37,12 @@ import {
 		DETAIL_COLOR,
 		EMBLEM_COLOR,
 		CRESCENT_OFFSET,
-		EMBLEM_CIRCLE_OFFSET
+		EMBLEM_CIRCLE_OFFSET,
+		POWER_BAR_SIZE,
+		POWER_LEVELS,
+		POWER_BAR_OFFSETS,
+		POWER_ON_COLOR,
+		POWER_OFF_COLOR
 } from './tank';
 
 
@@ -62,6 +67,8 @@ interface Meshes {
 	// Emblema
 	crescent: Mesh;
 	emblemCircle: Mesh;
+
+	powerBar: Mesh;
 
 }
 
@@ -310,6 +317,15 @@ function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes): void {
 	drawPart(gl, ff, meshes.crescent, partMatrix, EMBLEM_COLOR);
 	mat4.translate(partMatrix, tank_m.base, EMBLEM_CIRCLE_OFFSET);
 	drawPart(gl, ff, meshes.emblemCircle, partMatrix, EMBLEM_COLOR);
+
+	// Indicador de fuerza
+	for (let i = 0; i < POWER_LEVELS; i++) {
+		// lo movemos con la base del tanque
+		mat4.translate(partMatrix, tank_m.base, POWER_BAR_OFFSETS[i]);
+		// escogemos el color dependiendo de si el nivel de fuerza esta activo o no
+		const color = i < state.power ? POWER_ON_COLOR : POWER_OFF_COLOR;
+		drawPart(gl, ff, meshes.powerBar, partMatrix, color);
+	}
 }
 
 function run(canvas: HTMLCanvasElement): void {
@@ -337,6 +353,8 @@ function run(canvas: HTMLCanvasElement): void {
 		// Emblema del tanque
 		crescent: createCrescent(gl, CRESCENT_RADIUS, CRESCENT_WIDTH),
 		emblemCircle: createCylinder(gl, EMBLEM_CIRCLE_RADIUS, EMBLEM_CIRCLE_HEIGHT),
+
+		powerBar: createBox(gl, ...POWER_BAR_SIZE),
 	}
 
     
