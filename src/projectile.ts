@@ -1,5 +1,6 @@
 // Aqui estan el tamaño, color, estado y fisica del proyectil (la bala)
 import { vec3 } from 'gl-matrix';
+import { targets, TARGET_RADIUS } from './targets';
 
 // COLORES Y MEDIDAS 
 // esfera negra #0D0D0D 
@@ -52,18 +53,49 @@ export function fire(direction: vec3, power: number): void {
     ball.mode = 'flying';
 }
 
-// Avanza el vuelo. Retorna true si la bala sigue en el aire
-export function updateFlight(dt: number): boolean {
-    ball.t += dt;
-    positionAt(ball.position, ball.p0, ball.v0, ball.t);
-
-    // Choque con el suelo, la parte de abajo de la bala toca y = 0
-    if (ball.position[1] - BALL_RADIUS <= 0) {
-        ball.mode = 'ready';
-        return false;
+//COLISIONES
+ 
+// Dos esferas se tocan cuando la distancia entre sus centros es menor que la suma de sus radios
+const HIT_DISTANCE = BALL_RADIUS + TARGET_RADIUS;
+ 
+// Revisa si la bala, en su posicion actual, choca con algo
+// Si choca con un objetivo, el objetivo desaparece (alive = false)
+function checkCollisions(): boolean {
+    // Bala contra objetivos (solo los que siguen vivos)
+    for (const target of targets) {
+        if (!target.alive) continue;
+        if (vec3.distance(ball.position, target.position) < HIT_DISTANCE) {
+            target.alive = false;
+            return true;
+        }
     }
+ 
+    // Bala contra el suelo, la parte de abajo de la bala toca y = 0
+    return ball.position[1] - BALL_RADIUS <= 0;
+}
+ 
+// Tamaño maximo de cada sub-paso al revisar colisiones (240 revisiones por segundo de vuelo)
+const MAX_SUBSTEP = 1 / 240;
+ 
+// Avanza el vuelo dt segundos. Retorna true si la bala sigue en el aire
+
+export function updateFlight(dt: number): boolean {
+    const steps = Math.max(1, Math.ceil(dt / MAX_SUBSTEP));
+ 
+    for (let i = 1; i <= steps; i++) {
+        const t = ball.t + (dt * i) / steps;
+        positionAt(ball.position, ball.p0, ball.v0, t);
+ 
+        if (checkCollisions()) {
+            ball.mode = 'ready';
+            return false;
+        }
+    }
+ 
+    ball.t += dt;
     return true;
 }
+ 
 
 //TRAYECTORIA
 // Cuantos puntos como maximo tiene la linea, y cada cuanto tiempo se toma una muestra
