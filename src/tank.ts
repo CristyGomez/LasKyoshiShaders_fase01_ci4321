@@ -140,3 +140,15 @@ export function barrelTip(out: vec3): vec3 {
     // En el espacio local del cilindro, la punta está en +Y, a media longitud del centro.
     return vec3.transformMat4(out, [0, BARREL_LENGTH / 2, 0], tank_m.barrel);
 }
+
+// Base del cañón en coordenadas del mundo (el extremo pegado a la torreta).
+const barrelBase = vec3.create();
+
+// Dirección hacia donde apunta el cañón, en el mundo y de largo 1
+// Es la resta punta - base, normalizada
+export function barrelDirection(out: vec3): vec3 {
+    vec3.transformMat4(barrelBase, [0, -BARREL_LENGTH / 2, 0], tank_m.barrel);
+    barrelTip(out);
+    vec3.subtract(out, out, barrelBase);
+    return vec3.normalize(out, out);
+}

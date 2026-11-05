@@ -16,9 +16,9 @@ export interface Target {
 /** Los objetivos del juego. Un objetivo alcanzado pasa a alive = false y deja de dibujarse. */
 // PROVISIONAL: cada uno a distinta profundidad (z) y altura (y).
 export const targets: Target[] = [
-    { position: [-4.5, 3.5, -7], alive: true }, 
-    { position: [0, 4.5, -15], alive: true }, 
-    { position: [6, 6.5, -25], alive: true }, 
+    { position: [-2.5, 3.5, -7], alive: true }, 
+    { position: [ 2.5, 4.5, -15], alive: true }, 
+    { position: [ 0,   6.5, -25], alive: true }, 
 ];
 
 /** Hace reaparecer los tres objetivos (para la tecla R). */

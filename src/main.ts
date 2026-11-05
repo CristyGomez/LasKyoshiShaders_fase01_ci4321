@@ -1,6 +1,6 @@
 // Rotating cube, FixedFunction (FF) version.
 import './style.css';
-import { mat3, mat4 } from 'gl-matrix';
+import { mat3, mat4, vec3} from 'gl-matrix';
 import { ATTRIB, createFixedFunction, LIGHTING } from './vendor/ff/ff';
 import {
   CANVAS_HEIGHT,
@@ -24,7 +24,9 @@ import { Mesh, drawPart } from './mesh';
 
 import {
 		tank_m, 
-		updateTankMatrices, 
+		updateTankMatrices,
+		barrelTip, 
+		barrelDirection,
 		BODY_PARTS,
 		BODY_SIZE,
 		TURRET_RADIUS, TURRET_LENGTH,
@@ -45,7 +47,12 @@ import {
 		POWER_OFF_COLOR
 } from './tank';
 import { resetTargets, TARGET_COLOR, TARGET_RADIUS, targets } from './targets';
-
+import {
+		ball, BALL_COLOR, BALL_RADIUS,
+		fire, updateFlight,
+		launchVelocity, computeTrajectory, TRAJECTORY_MAX_POINTS,
+} from './projectile';
+import { TrajectoryLine, TRAJECTORY_COLOR } from './trajectory';
 
 // ============================== TIPOS ==============================
 type FF = ReturnType<typeof createFixedFunction>;
@@ -71,6 +78,7 @@ interface Meshes {
 
 	powerBar: Mesh;
 	target: Mesh;
+	ball: Mesh;
 
 }
 
@@ -180,6 +188,15 @@ function setupScene(ff: FF): void {
 // Game state: everything the simulation needs, nothing about WebGL.
 const state = { posX: 0, elevation: 30, power: 1, fire: false };
 
+// Vectores de apoyo para apuntar. Se crean una vez y se reutilizan cada frame.
+const aimDirection = vec3.create(); // hacia donde apunta el cañon (largo 1)
+const aimStart = vec3.create();     // punta del cañon
+const aimVelocity = vec3.create();  // velocidad que tendria la bala si disparamos ahora
+ 
+// Puntos de la linea de trayectoria (x, y, z por punto) y cuantos se usan.
+const trajectoryPoints = new Float32Array(TRAJECTORY_MAX_POINTS * 3);
+let trajectoryCount = 0;
+
 //=================================== ENTRADA POR TECLADO ===============================================
 
 // Input: the keydown listener only records presses. processInput handles them later, once per frame.
@@ -286,6 +303,29 @@ function update(dt: number): void {
 	if (state.elevation > MAX_ELEVATION) state.elevation = MAX_ELEVATION 
 
 	updateTankMatrices(state.posX, state.elevation);
+	// Direccion del cañon en este frame (la usan el disparo y la trayectoria)
+	barrelDirection(aimDirection);
+ 
+	// ----- Proyectil -----
+	if (ball.mode === 'ready') {
+		// En reposo: la bala acompaña la punta del cañon.
+		barrelTip(ball.position);
+ 
+		// Espacio: solo dispara si la bala esta disponible.
+		if (state.fire) fire(aimDirection, state.power);
+	}
+ 
+	if (ball.mode === 'flying') {
+		// Si toco el suelo vuelve a 'ready', y la ponemos en la punta este mismo frame
+		if (!updateFlight(dt)) barrelTip(ball.position);
+	}
+	state.fire = false; // el disparo se consume, haya salido o no
+ 
+	// ----- Trayectoria (vista previa) -----
+	// Misma formula que el vuelo, desde la punta del cañon con la fuerza actual
+	barrelTip(aimStart);
+	launchVelocity(aimVelocity, aimDirection, state.power);
+	trajectoryCount = computeTrajectory(trajectoryPoints, aimStart, aimVelocity);
 	clearInput() 
 
 }
@@ -296,7 +336,7 @@ function update(dt: number): void {
 const model = mat4.create();
 const normalMatrix = mat3.create();
 
-function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes): void {
+function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes, trajectory: TrajectoryLine): void {
 	
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -336,6 +376,14 @@ function render(gl: WebGL2RenderingContext, ff: FF, meshes: Meshes): void {
 		mat4.fromTranslation(partMatrix, target.position);
 		drawPart(gl, ff, meshes.target, partMatrix, TARGET_COLOR);
 	}
+
+	// Proyectil
+	mat4.fromTranslation(partMatrix, ball.position);
+	drawPart(gl, ff, meshes.ball, partMatrix, BALL_COLOR);
+
+	// Trayectoria, subimos los puntos calculados en update y dibujamos la linea
+	trajectory.update(gl, trajectoryPoints, trajectoryCount);
+	trajectory.draw(gl, ff, TRAJECTORY_COLOR);
 }
 
 function run(canvas: HTMLCanvasElement): void {
@@ -369,9 +417,11 @@ function run(canvas: HTMLCanvasElement): void {
 
 		// Poryectiles
 		target: createSphere(gl, TARGET_RADIUS),
+		ball: createSphere(gl, BALL_RADIUS),
 	}
 
-    
+	const trajectory = new TrajectoryLine(gl, TRAJECTORY_MAX_POINTS);
+
 	setupState(gl, canvas);
     setupScene(ff);
     setupInput();
@@ -384,7 +434,7 @@ function run(canvas: HTMLCanvasElement): void {
 		last = now;
 		processInput();
 		update(dt);
-		render(gl, ff, meshes);
+		render(gl, ff, meshes, trajectory);
 		requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
