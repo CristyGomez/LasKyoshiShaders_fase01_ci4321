@@ -220,17 +220,17 @@ function setupInput(): void {
 
 		if (e.code === 'Space') e.preventDefault(); // stops the page from scrolling
 
-		// if (e.repeat) return; // holding a key counts as one press
-
 		if (e.code === 'Space') spacePressed = true;
-
-		if (e.code === 'KeyR') rPressed = true;
-		if (e.code === 'KeyF') fPressed = true;
 
 		if (e.code === 'ArrowLeft') leftPressed = true;
 		if (e.code === 'ArrowRight') rightPressed = true;
 		if (e.code === 'ArrowUp') upPressed = true;
 		if (e.code === 'ArrowDown') downPressed = true;
+
+		if (e.repeat) return; // holding a key counts as one press
+
+		if (e.code === 'KeyR') rPressed = true;
+		if (e.code === 'KeyF') fPressed = true;
 
 		if (e.code === 'Digit1' || e.code === 'Numpad1') d1Pressed = true;
 		if (e.code === 'Digit2'|| e.code === 'Numpad2') d2Pressed = true;
@@ -258,10 +258,6 @@ function clearInput(): void {
 	d2Pressed = false;
 	d3Pressed = false;
 
-	upPressed = false;
-	downPressed = false;
-	leftPressed = false;
-	rightPressed = false;
 }
 
 // Loop phase 1. Space selects the next color. R toggles the rotation.
@@ -283,6 +279,7 @@ function resetGame(): void {
 	state.elevation = 30;
 	state.power = 1;
 	state.fire = false;
+	ball.mode = 'ready';
 	resetTargets();
 }
 // Loop phase 2. 
