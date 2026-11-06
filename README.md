@@ -1,62 +1,67 @@
-# Rotating Cube: FixedFunction and a game loop
+# Fase 1: Apuntar al objetivo (CI4321)
 
-A yellow cube rotates on the Y axis. One directional light shines on it. The example uses the FixedFunction (FF) module, so no shader code appears in the example. The code shows the game loop that drives the animation.
+**Equipo:** Las Kyoshi Shaders
 
-## Requirements
+**Integrantes:**
 
-- Node.js 18 or later (tested with Node 24)
+- Cristina Gómez
+- Sandibel Soares
+
+Juego de práctica de tiro en 3D hecho con WebGL2, TypeScript y FixedFunction. Un tanque (inspirado en la Nación del Fuego) se mueve de lado a lado sobre un campo de tierra y dispara una bala negra con trayectoria parabólica contra tres objetivos flotantes. Todas las figuras (caja, esfera, cilindro, plano y media luna) se generan en código.
+
+## Requisitos
+
+- Node.js 18 o superior
 - npm
-- A browser with WebGL2 support
+- Un navegador con soporte para WebGL2 (Chrome, Edge o Firefox)
 
-## Run
+## Cómo correrlo
 
-1. Install the dependencies. This is the only step that needs a network connection.
+1. Instalar las dependencias (solo la primera vez):
 
    ```
    npm install
    ```
 
-2. Start the development server.
+2. Iniciar el servidor de desarrollo:
 
    ```
    npm run dev
    ```
 
-3. Open `http://localhost:5173` in your browser.
+3. Abrir `http://localhost:5173` en el navegador.
 
-## Use
+## Controles
 
-- Press `Space` to change the cube color. The color cycles yellow → cyan → magenta → yellow.
-- Press `R` to stop or restart the rotation.
-- Holding a key counts as one press. Key auto-repeat is ignored.
+| Tecla                 | Acción                                                      |
+| --------------------- | ----------------------------------------------------------- |
+| `←` `→`               | Mover el tanque a la izquierda o a la derecha               |
+| `↑` `↓`               | Subir o bajar el cañón (entre 5° y 90°)                     |
+| `1` `2` `3`           | Elegir el nivel de fuerza                                   |
+| `F`                   | Cambiar al siguiente nivel de fuerza (1 > 2 > 3 > 1)        |
+| `Espacio`             | Disparar (solo si la bala está en la punta del cañón)       |
+| `R`                   | Reiniciar: reaparecen los objetivos y la bala vuelve al cañón |
 
-## Game loop
+Al mantener presionada una flecha, el movimiento empieza lento y acelera. Un toque corto sirve para afinar la puntería.
 
-Each frame runs three steps in this order:
+## Otros comandos
 
-1. `processInput` handles the `Space` and `R` presses recorded since the last frame.
-2. `update(dt)` changes the rotation angle.
-3. `render` draws the scene.
+| Comando           | Acción                                              |
+| ----------------- | --------------------------------------------------- |
+| `npm run build`   | Revisa los tipos con `tsc` y genera `dist/`         |
+| `npm run preview` | Sirve localmente la carpeta `dist/` ya construida   |
 
-`dt` is the time since the last frame, in seconds. The value is clamped to 0.1 s. A hidden tab does not make the cube jump when the tab becomes visible again. The rotation speed is in radians per second. The cube turns at the same speed on a 60 Hz display and on a 120 Hz display.
-
-## Other commands
-
-| Command           | Action                                          |
-| ----------------- | ----------------------------------------------- |
-| `npm run build`   | Type-check with `tsc` and build to `dist/`      |
-| `npm run preview` | Serve the built `dist/` folder locally          |
-
-## Project layout
+## Estructura del proyecto
 
 ```
-index.html                 page markup
-src/main.ts                WebGL setup, the game loop, and the canvas
-src/constants.ts           geometry, colors, and clear color (#1b1e2b)
-src/vendor/ff/             FF v1.0 (read only; do not edit)
+index.html            estructura de la página y texto de controles
+src/main.ts           escena, cámara, entrada por teclado y game loop
+src/constants.ts      colores del cielo y el suelo, cámara y tamaño del canvas
+src/mesh.ts           clase Mesh (VAO y buffers) y drawPart
+src/primitives.ts     generadores de caja, esfera, cilindro, plano y media luna
+src/tank.ts           medidas, colores y jerarquía de matrices del tanque
+src/targets.ts        posición y estado de los objetivos
+src/projectile.ts     física de la bala, colisiones y cálculo de la trayectoria
+src/trajectory.ts     línea de vista previa de la trayectoria
+src/vendor/ff/        FixedFunction v1.0 del curso (no se modificó)
 ```
-
-## Troubleshooting
-
-- **Blank page or "WebGL2 is not available."** Enable hardware acceleration in the browser, or try another browser.
-- **Port 5173 is in use.** Stop the other process, or run `npx vite --port 3000`.
